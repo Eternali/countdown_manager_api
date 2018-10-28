@@ -1,0 +1,47 @@
+# Login
+POST {{host}}/login-register
+Content-Type: application/json
+
+{
+  "email": "test@me.com",
+  "hashedPassword": "test"
+}
+
+> {%
+  client.assert(
+    typeof response.body.token !== "undefined",
+    "No token returned"
+  );
+  client.global.set("auth_token", response.body.token);
+%}
+
+###
+
+# Post a new snippet
+GET {{host}}/numcd
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+
+}
+
+###
+
+# Get all snippets
+GET {{host}}/snippets
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+###
+
+# Try a bad login
+POST {{host}}/login-register
+Content-Type: application/json
+
+{
+  "user": "test",
+  "password": "invalid-password"
+}
+
+###

@@ -1,4 +1,4 @@
-package org.example.CountdownManagerApi
+package org.example.countdownmanagerapi
 
 import java.security.SecureRandom
 

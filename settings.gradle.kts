@@ -1,2 +1,2 @@
-rootProject.name = "CountdownManagerApi"
+rootProject.name = "countdownmanagerapi"
 

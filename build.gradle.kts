@@ -34,7 +34,7 @@ tasks.withType<KotlinCompile>().all {
 }
 
 application {
-    mainClassName = "org.example.CountdownManagerApi.CountdownManagerApiKt"
+    mainClassName = "org.example.countdownmanagerapi.CountdownManagerApiKt"
 }
 
 dependencies {
@@ -45,6 +45,5 @@ dependencies {
     compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version")
     compile("ch.qos.logback:logback-classic:1.2.3")
     compile("org.litote.kmongo:kmongo-coroutine:3.8.3")
-    compile(group = "org.mindrot", name = "jbcrypt", version = "0.4")
     testCompile(group = "junit", name = "junit", version = "4.12")
 }

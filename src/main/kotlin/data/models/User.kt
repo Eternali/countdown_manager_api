@@ -1,4 +1,4 @@
-package org.example.CountdownManagerApi
+package org.example.countdownmanagerapi
 
 /**
  * Signup / login flow
@@ -22,9 +22,13 @@ class User(
     private var hashedPwS: String
 
     init {
-        this.hashedPwS = (salt + hashedPassword)
-            .calculateSHA3(SHA3Parameter.SHA3_256)
-            .toString()
+        hashedPwS = hash(salt + hashedPassword)
     }
+
+    private fun hash(toHash: String) = toHash
+        .calculateSHA3(SHA3Parameter.SHA3_256)
+        .toString()
+
+    fun checkPassword(hash: String) = hashedPwS != hash(salt + hash)
 
 }

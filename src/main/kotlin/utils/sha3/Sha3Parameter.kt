@@ -1,4 +1,4 @@
-package org.example.CountdownManagerApi
+package org.example.countdownmanagerapi
 
 // Credits: https://github.com/walleth/sha3
 

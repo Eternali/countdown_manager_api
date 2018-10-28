@@ -1,10 +1,10 @@
-package org.example.CountdownManagerApi.data
+package org.example.countdownmanagerapi.data
 
-import org.litote.kmongo.*
+import com.mongodb.async.client.MongoCollection
 
 interface CrudRepository<T> {
 
-    private val collection
+    val collection: MongoCollection<T>
 
     fun save(item: T): Boolean
     fun delete(item: T): Boolean
