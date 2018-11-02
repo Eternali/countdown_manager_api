@@ -10,7 +10,6 @@ class Database(val name: String) {
     var db: MongoDatabase
 
     init {
-        print("\n\n\nCREATING DATABASE: $name\n\n")
         db = client.getDatabase(name)
     }
 

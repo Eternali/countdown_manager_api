@@ -1,5 +1,7 @@
 package org.example.countdownmanagerapi
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 /**
  * Signup / login flow
  *
@@ -15,15 +17,13 @@ package org.example.countdownmanagerapi
 
 class User(
     val email: String,
-    hashedPassword: String
+    hashedPassword: String? = null,
+    hashedPwS: String? = null
 ) {
 
     private var salt: String = generateSalt()
-    private var hashedPwS: String
-
-    init {
-        hashedPwS = hash(salt + hashedPassword)
-    }
+    @JsonProperty
+    private var hashedPwS = hashedPwS ?: hash(salt + hashedPassword)
 
     private fun hash(toHash: String) = toHash
         .calculateSHA3(SHA3Parameter.SHA3_256)

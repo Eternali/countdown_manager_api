@@ -17,7 +17,7 @@ Content-Type: application/json
 
 ###
 
-# Post a new snippet
+# Get the number of countdowns a user has
 GET {{host}}/numcd
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
@@ -28,20 +28,50 @@ Authorization: Bearer {{auth_token}}
 
 ###
 
-# Get all snippets
-GET {{host}}/snippets
+# Insert a countdown
+POST {{host}}/cd
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "id": "124",
+  "owner": "test@me.com",
+  "name": "testing",
+  "gradient": ["purple", "green"],
+  "date": "1540871378369"
+}
+
+###
+
+# Get a countdown
+GET {{host}}/cd?id=124
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 ###
 
-# Try a bad login
-POST {{host}}/login-register
+# Update a countdown
+PATCH {{host}}/cd
 Content-Type: application/json
+Authorization: Bearer {{auth_token}}
 
 {
-  "user": "test",
-  "password": "invalid-password"
+  "id": "124",
+  "owner": "test@me.com",
+  "name": "not testing",
+  "gradient": ["purple", "green"],
+  "date": "1540871378369"
+}
+
+###
+
+# Delete a countdown
+DELETE {{host}}/cd
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "id": "124"
 }
 
 ###

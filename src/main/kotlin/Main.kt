@@ -3,7 +3,12 @@ package org.example.countdownmanagerapi
 import com.auth0.jwt.*
 import com.auth0.jwt.algorithms.*
 import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.mongodb.DBObject
 import com.mongodb.async.client.Observable
+import com.mongodb.client.model.BsonField
+import com.mongodb.client.model.Filters
+import com.mongodb.client.model.UpdateOptions
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
@@ -16,10 +21,9 @@ import io.ktor.routing.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.*
 import org.litote.kmongo.async.getCollection
-import org.litote.kmongo.coroutine.findOne
-import org.litote.kmongo.coroutine.insertOne
-import org.litote.kmongo.coroutine.toList
+import org.litote.kmongo.coroutine.*
 import org.litote.kmongo.eq
+import org.litote.kmongo.util.idValue
 import java.lang.RuntimeException
 
 fun main(args: Array<String>) {
@@ -81,23 +85,68 @@ fun main(args: Array<String>) {
                         call.respond(mapOf(
                             "OK" to true,
                             "length" to database.db
-                                .getCollection<Pair<String, List<Countdown>>>("countdowns")
-                                .findOne(Pair<String, List<Countdown>>::first eq principal.name)
+                                .getCollection<Countdown>("countdowns")
+                                .find(Countdown::owner eq principal.name)
+                                .toList().size
                         ))
                     }
                 }
             }
-            get("/cd-{cid}") {
-                call.respond(mapOf("OK" to true))
-            }
-            post("/cd-{cid}") {
-                call.respond(mapOf("OK" to true))
-            }
-            patch("/cd-{cid}") {
-                call.respond(mapOf("OK" to true))
-            }
-            delete("/cd-{cid}") {
-                call.respond(mapOf("OK" to true))
+            route("/cd") {
+                authenticate {
+                    get {
+                        val principal = call.principal<UserIdPrincipal>() ?: error("No Principal")
+                        val params = call.request.queryParameters
+                        call.respond(mapOf(
+                            "OK" to true,
+                            "countdowns" to database.db
+                                .getCollection<Countdown>("countdowns")
+                                .find(
+                                    Countdown::owner eq principal.name,
+                                    if (params.contains("id")) Countdown::id eq params["id"] else null
+                                ).toList()
+                        ))
+                    }
+                    post {
+                        val principal = call.principal<UserIdPrincipal>() ?: error("No Principal")
+                        val post = call.receive<Countdown>()
+                        database.db
+                            .getCollection<Countdown>("countdowns")
+                            .insertOne(post.copy(owner = principal.name))
+                        call.respond(mapOf(
+                            "OK" to true
+                        ))
+                    }
+                    delete {
+                        val principal = call.principal<UserIdPrincipal>() ?: error("No Principal")
+                        val post = call.receive<Countdown>()
+                        call.respond(mapOf(
+                            "OK" to database.db
+                                .getCollection<Countdown>("countdowns")
+                                .deleteOne(Countdown::owner eq principal.name, Countdown::id eq post.id)
+                        ))
+                    }
+                    patch {
+                        val principal = call.principal<UserIdPrincipal>() ?: error("No Principal")
+                        val post = call.receive<Countdown>()
+//                        val postInDb = database.db
+//                            .getCollection<Countdown>("countdowns")
+//                            .findOne(Countdown::id eq post.id)
+//                        if (postInDb == null) {
+//                            call.respond(mapOf("OK" to false))
+//                            return@patch
+//                        }
+                        call.respond(mapOf(
+                            "OK" to database.db
+                                .getCollection<Countdown>("countdowns")
+                                .updateOne(post)
+//                                .updateOne(Filters.eq('id', post.id), post)
+//                                .updateOne(Countdown::id eq post.id, Countdown::name eq principal.name)
+                        ))
+//                        var x: Map<String, Int> = mapOf()
+//                        var y: DBObject = JsonSerialize.
+                    }
+                }
             }
         }
 
