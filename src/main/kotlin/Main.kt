@@ -22,9 +22,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.*
 import org.example.countdownmanagerapi.data.MetaParam
 import org.litote.kmongo.async.getCollection
-import org.litote.kmongo.coroutine.*
 import org.litote.kmongo.eq
-import org.litote.kmongo.util.idValue
 import java.lang.RuntimeException
 
 fun main(args: Array<String>) {

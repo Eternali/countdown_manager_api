@@ -20,8 +20,8 @@ class CountdownRepository(
     suspend fun checkCall(principal: UserIdPrincipal?, cds: List<Countdown> = listOf(), fn: suspend (UserIdPrincipal) -> Unit) {
         print("\n\n${cds.joinToString(", ")}\n\n")
         when {
-            cds.any { it.owner != owner?.email } -> error("You can't modify other user's countdowns")
-            principal == null -> error("No Principal")
+            cds.any { it.owner != owner?.email } -> throw InvalidCredentialsException("You can't modify other user's countdowns")
+            principal == null -> throw InvalidCredentialsException("No Principal")
             owner == null ->
                 throw InvalidCredentialsException("Unauthorized, please log in to continue")
             principal.name != owner?.email ->
