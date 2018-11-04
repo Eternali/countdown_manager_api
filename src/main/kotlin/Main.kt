@@ -20,6 +20,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.*
+import org.example.countdownmanagerapi.data.MetaParam
 import org.litote.kmongo.async.getCollection
 import org.litote.kmongo.coroutine.*
 import org.litote.kmongo.eq
@@ -30,12 +31,14 @@ fun main(args: Array<String>) {
     val server = embeddedServer(Netty, port = 8080) {
         val loginJwt = SimpleJwt("user-auth-token")
         val database = Database.getInstance("prod")
+        val userRepo = UserRepository(database.db.getCollection<User>("users"))
+        val countdownRepo = CountdownRepository(database.db.getCollection<Countdown>("countdowns"))
 
         install(CORS) {
 //            method(HttpMethod.Options)
             method(HttpMethod.Get)
             method(HttpMethod.Post)
-            method(HttpMethod.Put)
+//            method(HttpMethod.Put)
             method(HttpMethod.Delete)
             method(HttpMethod.Patch)
             header(HttpHeaders.Authorization)
@@ -67,84 +70,55 @@ fun main(args: Array<String>) {
         routing {
             post("/login-register") {
                 val post = call.receive<LoginRegister>()
-                if (post.email == null || post.hashedPassword == null)
-                    throw InvalidCredentialsException("Email and a hashedPassword must be provided")
-                var user: User? = database.db.getCollection<User>("users").findOne(User::email eq post.email)
-                if (user == null) {
-                    user = User(post.email, post.hashedPassword)
-                    database.db.getCollection<User>("users").insertOne(user)
-                } else if (!user.checkPassword(post.hashedPassword)) {
-                    throw InvalidCredentialsException("Invalid credentials")
-                }
+                val user = userRepo.getOrCreate(post)
+                countdownRepo.owner = user
                 call.respond(mapOf("token" to loginJwt.sign(user.email)))
             }
             route("/numcd") {
                 authenticate {
                     get {
-                        val principal = call.principal<UserIdPrincipal>() ?: error("No principal")
-                        call.respond(mapOf(
-                            "OK" to true,
-                            "length" to database.db
-                                .getCollection<Countdown>("countdowns")
-                                .find(Countdown::owner eq principal.name)
-                                .toList().size
-                        ))
+                        countdownRepo.checkCall(call.principal()) {
+                            call.respond(countdownRepo.getMeta(MetaParam.LENGTH))
+                        }
                     }
                 }
             }
             route("/cd") {
                 authenticate {
                     get {
-                        val principal = call.principal<UserIdPrincipal>() ?: error("No Principal")
-                        val params = call.request.queryParameters
-                        call.respond(mapOf(
-                            "OK" to true,
-                            "countdowns" to database.db
-                                .getCollection<Countdown>("countdowns")
-                                .find(
-                                    Countdown::owner eq principal.name,
+                        countdownRepo.checkCall(call.principal()) {
+                            val params = call.request.queryParameters
+                            call.respond(mapOf(
+                                "OK" to true,
+                                "countdowns" to countdownRepo.findMany(
                                     if (params.contains("id")) Countdown::id eq params["id"] else null
-                                ).toList()
-                        ))
+                                )
+                            ))
+                        }
                     }
                     post {
-                        val principal = call.principal<UserIdPrincipal>() ?: error("No Principal")
-                        val post = call.receive<Countdown>()
-                        database.db
-                            .getCollection<Countdown>("countdowns")
-                            .insertOne(post.copy(owner = principal.name))
-                        call.respond(mapOf(
-                            "OK" to true
-                        ))
+                        val cd = call.receive<Countdown>()
+                        countdownRepo.checkCall(call.principal(), listOf(cd)) {
+                            call.respond(mapOf(
+                                "OK" to countdownRepo.insert(cd)
+                            ))
+                        }
                     }
                     delete {
-                        val principal = call.principal<UserIdPrincipal>() ?: error("No Principal")
-                        val post = call.receive<Countdown>()
-                        call.respond(mapOf(
-                            "OK" to database.db
-                                .getCollection<Countdown>("countdowns")
-                                .deleteOne(Countdown::owner eq principal.name, Countdown::id eq post.id)
-                        ))
+                        val cd = call.receive<Countdown>().copy(owner = countdownRepo.owner?.email)
+                        countdownRepo.checkCall(call.principal(), listOf(cd)) {
+                            call.respond(mapOf(
+                                "OK" to countdownRepo.delete(cd)
+                            ))
+                        }
                     }
                     patch {
-                        val principal = call.principal<UserIdPrincipal>() ?: error("No Principal")
-                        val post = call.receive<Countdown>()
-//                        val postInDb = database.db
-//                            .getCollection<Countdown>("countdowns")
-//                            .findOne(Countdown::id eq post.id)
-//                        if (postInDb == null) {
-//                            call.respond(mapOf("OK" to false))
-//                            return@patch
-//                        }
-                        call.respond(mapOf(
-                            "OK" to database.db
-                                .getCollection<Countdown>("countdowns")
-                                .updateOne(post)
-//                                .updateOne(Filters.eq('id', post.id), post)
-//                                .updateOne(Countdown::id eq post.id, Countdown::name eq principal.name)
-                        ))
-//                        var x: Map<String, Int> = mapOf()
-//                        var y: DBObject = JsonSerialize.
+                        val cd = call.receive<Countdown>().copy(owner = countdownRepo.owner?.email)
+                        countdownRepo.checkCall(call.principal(), listOf(cd)) {
+                            call.respond(mapOf(
+                                "OK" to countdownRepo.update(cd)
+                            ))
+                        }
                     }
                 }
             }

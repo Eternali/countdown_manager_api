@@ -34,7 +34,7 @@ Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "id": "124",
+  "id": "127",
   "owner": "test@me.com",
   "name": "testing",
   "gradient": ["purple", "green"],
@@ -44,7 +44,7 @@ Authorization: Bearer {{auth_token}}
 ###
 
 # Get a countdown
-GET {{host}}/cd?id=124
+GET {{host}}/cd?id=126
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
@@ -56,10 +56,10 @@ Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "id": "124",
+  "id": "126",
   "owner": "test@me.com",
-  "name": "not testing",
-  "gradient": ["purple", "green"],
+  "name": "yes testing",
+  "gradient": ["orange", "green"],
   "date": "1540871378369"
 }
 
@@ -71,7 +71,7 @@ Content-Type: application/json
 Authorization: Bearer {{auth_token}}
 
 {
-  "id": "124"
+  "id": "126"
 }
 
 ###
